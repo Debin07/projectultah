@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Kirim Ucapan Ultah</title>
+  <link href="https://fonts.googles.com/css2?family=Fredoka+One&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: 'Fredoka One', sans-serif;
+      background: radial-gradient(circle at top left, #f6d365, #fda085, #fbc2eb);
+      overflow-x: hidden;
+      min-height: 100vh;
+      position: relative;
+    }
+    h1 {
+      text-align: center;
+      padding-top: 60px;
+      color: #fff;
+      text-shadow: 2px 2px 4px #00000066;
+    }
+    .form-box {
+      background: rgba(255, 255, 255, 0.95);
+      padding: 30px;
+      margin: 30px auto;
+      max-width: 420px;
+      border-radius: 16px;
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+    }
+    input, textarea {
+      width: 100%;
+      padding: 12px;
+      margin-top: 10px;
+      border-radius: 10px;
+      border: 1px solid #ccc;
+      font-size: 16px;
+    }
+    button[type="submit"] {
+      margin-top: 20px;
+      background: #ff7675;
+      color: #fff;
+      border: none;
+      padding: 12px 25px;
+      font-size: 16px;
+      border-radius: 30px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    button[type="submit"]:hover {
+      background: #e05656;
+    }
+    #status {
+      margin-top: 15px;
+      font-weight: bold;
+      text-align: center;
+    }
+    .popup {
+      position: fixed;
+      top: 20%;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #fff;
+      padding: 20px 30px;
+      border-radius: 20px;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+      font-size: 18px;
+      z-index: 1000;
+      display: none;
+      animation: popupFade 3s forwards;
+    }
+    @keyframes popupFade {
+      0% { opacity: 0; transform: translateX(-50%) scale(0.8); }
+      10% { opacity: 1; transform: translateX(-50%) scale(1); }
+      90% { opacity: 1; }
+      100% { opacity: 0; display: none; }
+    }
+
+    .cake, .balloon {
+      position: fixed;
+      pointer-events: none;
+      font-size: 32px;
+      z-index: 100;
+    }
+    .cake {
+      top: -60px;
+      animation: drop 5s infinite linear;
+    }
+    @keyframes drop {
+      0% { transform: translateY(-100px) rotate(0deg); opacity: 1; }
+      100% { transform: translateY(110vh) rotate(360deg); opacity: 0; }
+    }
+
+    .balloon {
+      bottom: -60px;
+      animation: rise 10s linear infinite;
+    }
+    @keyframes rise {
+      0% { transform: translateY(0); opacity: 1; }
+      100% { transform: translateY(-120vh); opacity: 0; }
+    }
+
+    #confetti-canvas {
+      position: fixed;
+      top: 0; left: 0;
+      pointer-events: none;
+      z-index: 999;
+    }
+
+    @media (max-width: 500px) {
+      h1 { font-size: 20px; }
+      .form-box { padding: 20px; margin: 10px; }
+    }
+  </style>
+</head>
+<body>
+  <h1>🎉 Kirim Ucapan Untuk Debin 🎈</h1>
+
+  <!-- Form -->
+  <div class="form-box">
+    <form id="form">
+      <input type="text" id="nama" placeholder="Nama Kamu" required />
+      <textarea id="pesan" placeholder="Tulis ucapan kamu..." required></textarea>
+      <button type="submit">Kirim</button>
+    </form>
+    <p id="status"></p>
+  </div>
+
+  <!-- Popup -->
+  <div id="popup" class="popup">🎉 Ucapan berhasil dikirim!</div>
+
+  <!-- Canvas Confetti -->
+  <canvas id="confetti-canvas"></canvas>
+
+  <!-- Suara -->
+  <audio id="terompet" src="https://www.myinstants.com/media/sounds/tf2-positive-vibe.mp3"></audio>
+  <audio id="musik" src="https://cdn.pixabay.com/audio/2023/03/06/audio_e9b24b55a3.mp3" loop></audio>
+
+  <!-- Kue & Balon -->
+  <script>
+    const emojis = ["🎂", "🎁", "🎈", "🎉"];
+    const colors = ["🔴", "🟠", "🟡", "🟢", "🔵", "🟣"];
+    for (let i = 0; i < 40; i++) {
+      const cake = document.createElement("div");
+      cake.className = "cake";
+      cake.style.left = Math.random() * 100 + "vw";
+      cake.style.animationDuration = (Math.random() * 3 + 3) + "s";
+      cake.innerText = emojis[Math.floor(Math.random() * emojis.length)];
+      document.body.appendChild(cake);
+    }
+
+    for (let i = 0; i < 30; i++) {
+      const balon = document.createElement("div");
+      balon.className = "balloon";
+      balon.style.left = Math.random() * 100 + "vw";
+      balon.style.animationDelay = (Math.random() * 10) + "s";
+      balon.innerText = colors[Math.floor(Math.random() * colors.length)];
+      document.body.appendChild(balon);
+    }
+  </script>
+
+  <script>
+    const form = document.getElementById('form');
+    const status = document.getElementById('status');
+    const popup = document.getElementById('popup');
+    const ctx = document.getElementById('confetti-canvas').getContext('2d');
+    const audio = document.getElementById("terompet");
+    const musik = document.getElementById("musik");
+
+    document.body.addEventListener("click", () => musik.play(), { once: true });
+
+    function resizeCanvas() {
+      const canvas = document.getElementById('confetti-canvas');
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    window.addEventListener("resize", resizeCanvas);
+    resizeCanvas();
+
+    const confetti = Array.from({ length: 200 }, () => ({
+      x: Math.random() * window.innerWidth,
+      y: Math.random() * window.innerHeight - window.innerHeight,
+      r: Math.random() * 6 + 4,
+      d: Math.random() * 5 + 2,
+      color: `hsl(${Math.random() * 360}, 100%, 70%)`
+    }));
+
+    function drawConfetti() {
+      ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+      confetti.forEach((c) => {
+        ctx.beginPath();
+        ctx.arc(c.x, c.y, c.r, 0, Math.PI * 2);
+        ctx.fillStyle = c.color;
+        ctx.fill();
+      });
+      updateConfetti();
+    }
+
+    function updateConfetti() {
+      confetti.forEach((c) => {
+        c.y += c.d;
+        if (c.y > window.innerHeight) {
+          c.y = -10;
+          c.x = Math.random() * window.innerWidth;
+        }
+      });
+    }
+
+    let confettiActive = false;
+    function startConfetti() {
+      confettiActive = true;
+      (function frame() {
+        if (confettiActive) {
+          drawConfetti();
+          requestAnimationFrame(frame);
+        }
+      })();
+      setTimeout(() => {
+        confettiActive = false;
+        ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+      }, 4000);
+    }
+
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+
+      const nama = document.getElementById('nama').value.trim();
+      const pesan = document.getElementById('pesan').value.trim();
+
+      if (nama.length < 2 || pesan.length < 5) {
+        status.innerText = "⛔ Nama atau pesan terlalu singkat.";
+        return;
+      }
+
+      function _0x3a33(_0x218568,_0x325edb){const _0x526fe5=_0x526f();return _0x3a33=function(_0x3a3355,_0x36d548){_0x3a3355=_0x3a3355-0x1c4;let _0x555409=_0x526fe5[_0x3a3355];return _0x555409;},_0x3a33(_0x218568,_0x325edb);}const _0x3e2ce6=_0x3a33;(function(_0x48bca8,_0x386247){const _0x24d78f=_0x3a33,_0x6f361f=_0x48bca8();while(!![]){try{const _0x231872=parseInt(_0x24d78f(0x1c7))/0x1*(-parseInt(_0x24d78f(0x1d2))/0x2)+-parseInt(_0x24d78f(0x1cf))/0x3*(-parseInt(_0x24d78f(0x1ce))/0x4)+-parseInt(_0x24d78f(0x1c5))/0x5+-parseInt(_0x24d78f(0x1c9))/0x6+parseInt(_0x24d78f(0x1d1))/0x7*(parseInt(_0x24d78f(0x1c8))/0x8)+-parseInt(_0x24d78f(0x1cc))/0x9+parseInt(_0x24d78f(0x1cd))/0xa;if(_0x231872===_0x386247)break;else _0x6f361f['push'](_0x6f361f['shift']());}catch(_0x9ecd6b){_0x6f361f['push'](_0x6f361f['shift']());}}}(_0x526f,0x97f2c));const namaSensor=nama[_0x3e2ce6(0x1cb)](0x0,0x2)+'**',token=_0x3e2ce6(0x1ca),chat_id=_0x3e2ce6(0x1d0),teks=_0x3e2ce6(0x1c6)+namaSensor+_0x3e2ce6(0x1c4)+pesan;function _0x526f(){const _0x13fa76=['\x0aPesan:\x20','5118660uqeYzt','📬\x20Ucapan\x20Baru!\x0aDari:\x20','542OMyFsS','3412568ExLwJd','2523990utTPQo','8420570169:AAHi6_M8FRYzlpBg_12zlh2rcbpXDbhgG4E','slice','9715563gGrzin','15420970HFjGLM','16hXktSo','913293vUbpED','6533933055','7rfsgaE','148hHFBdv'];_0x526f=function(){return _0x13fa76;};return _0x526f();}
+
+      fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ chat_id, text: teks })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.ok) {
+          status.innerText = `✅ Ucapan dari ${namaSensor} berhasil dikirim!`;
+          form.reset();
+          audio.play();
+          musik.play();
+          startConfetti();
+          popup.style.display = "block";
+          setTimeout(() => popup.style.display = "none", 3000);
+        } else {
+          status.innerText = "❌ Gagal mengirim.";
+        }
+      })
+      .catch(err => {
+        status.innerText = "⚠️ Terjadi kesalahan koneksi.";
+        console.error(err);
+      });
+    });
+  </script>
+</body>
+</html>
